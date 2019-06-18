@@ -20,6 +20,8 @@ install_requires = [
     'numpy>=1.13.3',
     'terminaltables',
     'pandas',
+    'pandas',
+    'pyarrow',
 ]
 
 setup(

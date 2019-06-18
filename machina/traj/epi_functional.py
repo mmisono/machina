@@ -26,7 +26,7 @@ def compute_vs(data, vf):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -59,7 +59,7 @@ def set_all_pris(data, pri):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -95,7 +95,7 @@ def compute_pris(data, qf, targ_qf, pol, gamma, continuous=True, deterministic=T
         Corresponding to input
     """
     if continuous:
-        if isinstance(data, Traj):
+        if hasattr(data, "current_epis"):
             epis = data.current_epis
         else:
             epis = data
@@ -114,7 +114,7 @@ def compute_pris(data, qf, targ_qf, pol, gamma, continuous=True, deterministic=T
             with torch.no_grad():
                 bellman_loss = lf.bellman(
                     qf, targ_qf, pol, data_map, gamma, continuous, deterministic, sampling, reduction='none')
-                td_loss = torch.sqrt(bellman_loss*2)
+                td_loss = torch.sqrt(bellman_loss * 2)
                 pris = (torch.abs(td_loss) + epsilon) ** alpha
                 epi['pris'] = pris.cpu().numpy()
         return data
@@ -139,7 +139,7 @@ def compute_seq_pris(data, seq_length, eta=0.9):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -170,7 +170,7 @@ def compute_rets(data, gamma):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -203,7 +203,7 @@ def compute_advs(data, gamma, lam):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -237,7 +237,7 @@ def compute_hs(data, func, hs_name='hs', input_acs=False):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -280,7 +280,7 @@ def centerize_advs(data, eps=1e-6):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -305,7 +305,7 @@ def add_next_obs(data):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -333,7 +333,7 @@ def compute_h_masks(data):
     data : Traj or epi(dict of ndarray)
         Corresponding to input
     """
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -347,7 +347,7 @@ def compute_h_masks(data):
 
 
 def compute_pseudo_rews(data, rew_giver, state_only=False):
-    if isinstance(data, Traj):
+    if hasattr(data, "current_epis"):
         epis = data.current_epis
     else:
         epis = data
@@ -391,7 +391,7 @@ def train_test_split(epis, train_size):
 
 def normalize_obs_and_acs(data, mean_obs=None, std_obs=None, mean_acs=None, std_acs=None, return_statistic=True, eps=1e-6):
     with torch.no_grad():
-        if isinstance(data, Traj):
+        if hasattr(data, "current_epis"):
             epis = data.current_epis
         else:
             epis = data
