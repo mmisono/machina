@@ -48,7 +48,7 @@ def pg_clip(pol, batch, clip_param, ent_beta):
     )
 
     pol.reset()
-    _, _, pd_params = pol(obs, h_masks=h_masks)
+    _, _, pd_params = pol(obs, h_masks=h_masks, sample_ac=False)
 
     new_llh = pd.llh(acs, pd_params)
     ratio = torch.exp(new_llh - old_llh)

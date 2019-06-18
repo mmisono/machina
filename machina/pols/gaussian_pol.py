@@ -36,7 +36,7 @@ class GaussianPol(BasePol):
         self.pd = GaussianPd()
         self.to(get_device())
 
-    def forward(self, obs, hs=None, h_masks=None):
+    def forward(self, obs, hs=None, h_masks=None, sample_ac=True):
         obs = self._check_obs_shape(obs)
 
         if self.rnn:
@@ -65,8 +65,12 @@ class GaussianPol(BasePol):
             else:
                 mean, log_std = self.net(obs)
         log_std = log_std.expand_as(mean)
-        ac = self.pd.sample(dict(mean=mean, log_std=log_std))
-        ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
+        if sample_ac:
+            ac = self.pd.sample(dict(mean=mean, log_std=log_std))
+            ac_real = self.convert_ac_for_real(ac.detach().cpu().numpy())
+        else:
+            ac = None
+            ac_real = None
         return ac_real, ac, dict(mean=mean, log_std=log_std, hs=hs)
 
     def deterministic_ac_real(self, obs, hs=None, h_masks=None):
