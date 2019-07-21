@@ -16,37 +16,42 @@ from machina.utils import cpu_mode
 
 LARGE_NUMBER = 100000000
 
+"""
+- Overview
 
-class Worker(object):
-    def __init__(self, pol, env, seed, worker_id, prepro=None):
-        self.set_pol(pol)
-        self.env = env
-        self.worker_id = worker_id
-        np.random.seed(seed + worker_id)
-        torch.manual_seed(seed + worker_id)
+EpiSampler <----- Worker  <----- Env
+              |              |-- Env
+              |              |-- Env
+              |
+              |-- Worker <------ Env
+                             |-- Env
+                             |-- Env
+
+- Each env return one episode at a time
+- Each worker return num_epis episodes at a time
+"""
+
+
+class Env:
+    def __init__(self, pol, env, seed, prepro):
+        np.random.seed(seed)
+        torch.manual_seed(seed)
         torch.set_num_threads(1)
-        if prepro is None:
-            self.prepro = lambda x: x
-        else:
-            self.prepro = prepro
-
-    def set_pol(self, pol):
+        self.prepro = prepro
         self.pol = pol
-        self.pol.eval()
-        self.pol.dp_run = False
-
-    def set_pol_state(self, state_dict):
-        from collections import OrderedDict
-        new_state_dict = OrderedDict()
-        for k, v in state_dict.items():
-            if k.find("dp_net") == -1:
-                new_state_dict[k] = v
-        self.pol.load_state_dict(new_state_dict)
-        self.pol.eval()
+        self.env = env
 
     @classmethod
     def as_remote(cls):
         return ray.remote(cls)
+
+    def set_pol(self, pol):
+        self.pol = pol
+        self.pol.eval()
+
+    def set_pol_state(self, state_dict):
+        self.pol.load_state_dict(state_dict)
+        self.pol.eval()
 
     def one_epi(self, deterministic=False):
         with cpu_mode():
@@ -105,6 +110,45 @@ class Worker(object):
             )
 
 
+class Worker:
+    def __init__(self, pol, env, seed, num_envs, prepro=None):
+        if prepro is None:
+            def prepro(x): return x
+
+        self.envs = [Env.as_remote().remote(pol, env, seed + i, prepro)
+                     for i in range(num_envs)]
+        self.set_pol(pol)
+
+    @classmethod
+    def as_remote(cls):
+        return ray.remote(cls)
+
+    def set_pol(self, pol):
+        for env in self.envs:
+            env.set_pol.remote(pol)
+
+    def set_pol_state(self, state_dict):
+        for env in self.envs:
+            env.set_pol_state.remote(state_dict)
+
+    def sample(self, num_epis, deterministic):
+        """Collect num_epis of episodes
+        """
+        pending = {env.one_epi.remote(deterministic): env for env in self.envs}
+
+        epis = []
+        n_epis = 0
+        while pending:
+            ready, _ = ray.wait(list(pending))
+            for obj_id in ready:
+                env = pending.pop(obj_id)
+                epis.append(ray.get(obj_id))
+                n_epis += 1
+                if (n_epis + len(pending)) < num_epis:
+                    pending[env.one_epi.remote(deterministic)] = env
+        return epis
+
+
 class EpiSampler(object):
     """
     A sampler which sample episodes.
@@ -119,15 +163,16 @@ class EpiSampler(object):
     seed : int
     """
 
-    def __init__(self, pol, env, num_parallel=8, prepro=None, seed=256):
+    def __init__(self, pol, env, num_workers=8, num_envs=1, num_batch_epi=1, prepro=None, seed=256):
         pol = copy.deepcopy(pol)
         pol.to('cpu')
 
         pol = ray.put(pol)
         env = ray.put(env)
 
-        self.workers = [Worker.as_remote().remote(pol, env, seed, i, prepro)
-                        for i in range(num_parallel)]
+        self.workers = [Worker.as_remote().remote(pol, env, seed + i * num_envs, num_envs, prepro)
+                        for i in range(num_workers)]
+        self.num_batch_epi = num_batch_epi
 
     def set_pol(self, pol):
         if not isinstance(pol, ray.ObjectID):
@@ -177,17 +222,20 @@ class EpiSampler(object):
         n_steps = 0
         n_epis = 0
 
-        pending = {w.one_epi.remote(deterministic): w for w in self.workers}
+        pending = {w.sample.remote(
+            self.num_batch_epi, deterministic): w for w in self.workers}
 
         while pending:
             ready, _ = ray.wait(list(pending))
             for obj_id in ready:
                 worker = pending.pop(obj_id)
-                (l, epi) = ray.get(obj_id)
-                epis.append(epi)
-                n_steps += l
-                n_epis += 1
-                if n_steps < max_steps and n_epis < max_epis:
-                    pending[worker.one_epi.remote(deterministic)] = worker
+                results = ray.get(obj_id)
+                for (l, epi) in results:
+                    epis.append(epi)
+                    n_steps += l
+                    n_epis += 1
+                if n_steps < max_steps and (n_epis + len(pending)) < max_epis:
+                    pending[worker.sample.remote(
+                        self.num_batch_epi, deterministic)] = worker
 
         return epis
