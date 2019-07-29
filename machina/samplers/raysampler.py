@@ -142,7 +142,7 @@ class Worker:
             ready, _ = ray.wait(list(pending))
             for obj_id in ready:
                 env = pending.pop(obj_id)
-                epis.append(ray.get(obj_id))
+                epis.append(obj_id)
                 n_epis += 1
                 if (n_epis + len(pending)) < num_epis:
                     pending[env.one_epi.remote(deterministic)] = env
@@ -230,7 +230,7 @@ class EpiSampler(object):
             for obj_id in ready:
                 worker = pending.pop(obj_id)
                 results = ray.get(obj_id)
-                for (l, epi) in results:
+                for (l, epi) in ray.get(results):
                     epis.append(epi)
                     n_steps += l
                     n_epis += 1
