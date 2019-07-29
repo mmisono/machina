@@ -17,6 +17,7 @@ from machina.utils import cpu_mode
 LARGE_NUMBER = 100000000
 
 
+@ray.remote
 class Worker(object):
     def __init__(self, pol, env, seed, worker_id, prepro=None):
         self.set_pol(pol)
@@ -44,10 +45,7 @@ class Worker(object):
         self.pol.load_state_dict(new_state_dict)
         self.pol.eval()
 
-    @classmethod
-    def as_remote(cls):
-        return ray.remote(cls)
-
+    # @ray.method(num_return_vals=3)
     def one_epi(self, deterministic=False):
         with cpu_mode():
             obs = []
@@ -60,6 +58,7 @@ class Worker(object):
             self.pol.reset()
             done = False
             epi_length = 0
+            s = time.time()
             while not done:
                 o = self.prepro(o)
                 if not deterministic:
@@ -92,8 +91,9 @@ class Worker(object):
                 if done:
                     break
                 o = next_o
+            e = time.time()
 
-            return epi_length, dict(
+            return e-s, epi_length, dict(
                 obs=np.array(obs, dtype='float32'),
                 acs=np.array(acs, dtype='float32'),
                 rews=np.array(rews, dtype='float32'),
@@ -126,7 +126,7 @@ class EpiSampler(object):
         pol = ray.put(pol)
         env = ray.put(env)
 
-        self.workers = [Worker.as_remote().remote(pol, env, seed, i, prepro)
+        self.workers = [Worker.remote(pol, env, seed, i, prepro)
                         for i in range(num_parallel)]
 
     def set_pol(self, pol):
@@ -177,17 +177,48 @@ class EpiSampler(object):
         n_steps = 0
         n_epis = 0
 
+        # worker_ids = [i for i in range(len(self.workers))]
+        # epi_remain = []
+        #
+        # while max_steps > n_steps and max_epis > n_epis:
+        #     epi_remain += [self.workers[i].one_epi.remote(
+        #         deterministic) for i in worker_ids]
+        #     worker_ids = []
+        #
+        #     epi_done, epi_remain = ray.wait(epi_remain)
+        #     for (worker_id, l, epi) in ray.get(epi_done):
+        #         n_steps += l
+        #         n_epis += 1
+        #         epis.append(epi)
+        #         worker_ids.append(worker_id)
+        #
+        # epi_done = ray.get(epi_remain)
+        # for (_, l, epi) in epi_done:
+        #     n_steps += l
+        #     n_epis += 1
+        #     epis.append(epi)
+        #
+        # return epis
+
         pending = {w.one_epi.remote(deterministic): w for w in self.workers}
+        times = []
 
         while pending:
             ready, _ = ray.wait(list(pending))
             for obj_id in ready:
                 worker = pending.pop(obj_id)
-                (l, epi) = ray.get(obj_id)
-                epis.append(epi)
-                n_steps += l
+                # (t, l, epi) = obj_id
+                # (t, l) = ray.get([t, l])
+                # (t, l, epi) = ray.get(obj_id)
+                # times.append(t)
+                # epis.append(epi)
+                # n_steps += l
+                n_steps += 1
                 n_epis += 1
-                if n_steps < max_steps and n_epis < max_epis:
+                if n_steps < max_steps and (n_epis + len(pending)) < max_epis:
                     pending[worker.one_epi.remote(deterministic)] = worker
+        print(epis)
+
+        print(f"one epi time: {np.mean(times)}, {np.std(times)}")
 
         return epis

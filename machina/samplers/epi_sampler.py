@@ -45,6 +45,7 @@ def one_epi(env, pol, deterministic=False, prepro=None):
         pol.reset()
         done = False
         epi_length = 0
+        s = time.time()
         while not done:
             o = prepro(o)
             if not deterministic:
@@ -76,7 +77,8 @@ def one_epi(env, pol, deterministic=False, prepro=None):
             if done:
                 break
             o = next_o
-        return epi_length, dict(
+        e = time.time()
+        return e-s, epi_length, dict(
             obs=np.array(obs, dtype='float32'),
             acs=np.array(acs, dtype='float32'),
             rews=np.array(rews, dtype='float32'),
@@ -88,7 +90,8 @@ def one_epi(env, pol, deterministic=False, prepro=None):
         )
 
 
-def mp_sample(pol, env, max_steps, max_epis, n_steps_global, n_epis_global, epis, exec_flag, deterministic_flag, process_id, prepro=None, seed=256):
+def mp_sample(pol, env, max_steps, max_epis, n_steps_global, n_epis_global,
+        epis, exec_flag, deterministic_flag, process_id, times, prepro=None, seed=256):
     """
     Multiprocess sample.
     Sampling episodes until max_steps or max_epis is achieved.
@@ -123,10 +126,11 @@ def mp_sample(pol, env, max_steps, max_epis, n_steps_global, n_epis_global, epis
         time.sleep(0.1)
         if exec_flag > 0:
             while max_steps > n_steps_global and max_epis > n_epis_global:
-                l, epi = one_epi(env, pol, deterministic_flag, prepro)
+                t, l, epi = one_epi(env, pol, deterministic_flag, prepro)
                 n_steps_global += l
                 n_epis_global += 1
                 epis.append(epi)
+                times.append(t)
             exec_flag.zero_()
 
 
@@ -164,10 +168,15 @@ class EpiSampler(object):
             0, dtype=torch.uint8).share_memory_()
 
         self.epis = mp.Manager().list()
+        self.times = mp.Manager().list()
         self.processes = []
         for ind in range(self.num_parallel):
             p = mp.Process(target=mp_sample, args=(self.pol, env, self.max_steps, self.max_epis, self.n_steps_global,
-                                                   self.n_epis_global, self.epis, self.exec_flags[ind], self.deterministic_flag, ind, prepro, seed))
+                                                   self.n_epis_global,
+                                                   self.epis,
+                                                   self.exec_flags[ind],
+                                                   self.deterministic_flag,
+                                                   ind, self.times, prepro, seed))
             p.start()
             self.processes.append(p)
 
@@ -224,10 +233,12 @@ class EpiSampler(object):
             self.deterministic_flag.zero_()
 
         del self.epis[:]
+        del self.times[:]
 
         for exec_flag in self.exec_flags:
             exec_flag += 1
 
         while True:
             if all([exec_flag == 0 for exec_flag in self.exec_flags]):
+                print(f"one epi time: {np.mean(self.times)}, {np.std(self.times)}")
                 return list(self.epis)
