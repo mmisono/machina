@@ -89,7 +89,7 @@ class TestFlatten2DictPP0(unittest.TestCase):
         traj = ef.compute_h_masks(traj)
         traj.register_epis()
 
-        result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=0.2,
+        result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=0.2,  # noqa: F841
                                      optim_pol=optim_pol, optim_vf=optim_vf, epoch=1, batch_size=32)
 
         del sampler
@@ -247,9 +247,9 @@ class TestFlatten2DictR2D2SAC(unittest.TestCase):
         traj = ef.compute_h_masks(traj)
         for i in range(len(qfs)):
             traj = ef.compute_hs(
-                traj, qfs[i], hs_name='q_hs'+str(i), input_acs=True)
+                traj, qfs[i], hs_name='q_hs' + str(i), input_acs=True)
             traj = ef.compute_hs(
-                traj, targ_qfs[i], hs_name='targ_q_hs'+str(i), input_acs=True)
+                traj, targ_qfs[i], hs_name='targ_q_hs' + str(i), input_acs=True)
         traj.register_epis()
 
         result_dict = r2d2_sac.train(

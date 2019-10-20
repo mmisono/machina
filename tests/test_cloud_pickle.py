@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 import cloudpickle
+import torch
 
 from machina.traj import Traj
 from machina.envs import GymEnv, C2DEnv
@@ -18,7 +19,7 @@ def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
     acs = acs * std_acs + mean_acs
     # Pendulum
     rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
-             0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
+             0.1 * (next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
     rews = rews.squeeze(0)
 
     return rews
@@ -30,8 +31,8 @@ class TestCloudPickle(unittest.TestCase):
     def setUpClass(cls):
         env = GymEnv('Pendulum-v0')
         random_pol = RandomPol(cls.env.observation_space, cls.env.action_space)
-        sampler = EpiSampler(cls.env, pol, num_parallel=1)
-        epis = sampler.sample(pol, max_steps=32)
+        sampler = EpiSampler(cls.env, random_pol, num_parallel=1)
+        epis = sampler.sample(random_pol, max_steps=32)
         traj = Traj()
         traj.add_epis(epis)
         traj.register_epis()

@@ -24,7 +24,15 @@ class DeterministicPd(BasePd):
     def kl_pq(self, p_params, q_params):
         p_mean = p_params['mean']
         q_mean = q_params['mean']
-        return torch.sum(kl_divergence(Normal(loc=p_mean, scale=torch.zeros_like(p_mean)), Normal(loc=q_mean, scale=torch.zeros_like(q_mean))), dim=-1)
+        return torch.sum(
+            kl_divergence(
+                Normal(
+                    loc=p_mean,
+                    scale=torch.zeros_like(p_mean)),
+                Normal(
+                    loc=q_mean,
+                    scale=torch.zeros_like(q_mean))),
+            dim=-1)
 
     def ent(self, params):
         mean = params['mean']

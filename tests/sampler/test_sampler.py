@@ -32,8 +32,17 @@ class TestTraj(unittest.TestCase):
 
     def test_distributed_epi_sampler(self):
         proc_redis = subprocess.Popen(['redis-server'])
-        proc_slave = subprocess.Popen(['python', '-m', 'machina.samplers.distributed_epi_sampler',
-                                       '--world_size', '1', '--rank', '0', '--redis_host', 'localhost', '--redis_port', '6379'])
+        proc_slave = subprocess.Popen(['python',
+                                       '-m',
+                                       'machina.samplers.distributed_epi_sampler',
+                                       '--world_size',
+                                       '1',
+                                       '--rank',
+                                       '0',
+                                       '--redis_host',
+                                       'localhost',
+                                       '--redis_port',
+                                       '6379'])
         make_redis('localhost', '6379')
         sampler = DistributedEpiSampler(
             1, -1, self.env, self.pol, num_parallel=1)

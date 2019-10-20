@@ -88,7 +88,19 @@ def one_epi(env, pol, deterministic=False, prepro=None):
         )
 
 
-def mp_sample(pol, env, max_steps, max_epis, n_steps_global, n_epis_global, epis, exec_flag, deterministic_flag, process_id, prepro=None, seed=256):
+def mp_sample(
+        pol,
+        env,
+        max_steps,
+        max_epis,
+        n_steps_global,
+        n_epis_global,
+        epis,
+        exec_flag,
+        deterministic_flag,
+        process_id,
+        prepro=None,
+        seed=256):
     """
     Multiprocess sample.
     Sampling episodes until max_steps or max_epis is achieved.
@@ -166,8 +178,21 @@ class EpiSampler(object):
         self.epis = mp.Manager().list()
         self.processes = []
         for ind in range(self.num_parallel):
-            p = mp.Process(target=mp_sample, args=(self.pol, env, self.max_steps, self.max_epis, self.n_steps_global,
-                                                   self.n_epis_global, self.epis, self.exec_flags[ind], self.deterministic_flag, ind, prepro, seed))
+            p = mp.Process(
+                target=mp_sample,
+                args=(
+                    self.pol,
+                    env,
+                    self.max_steps,
+                    self.max_epis,
+                    self.n_steps_global,
+                    self.n_epis_global,
+                    self.epis,
+                    self.exec_flags[ind],
+                    self.deterministic_flag,
+                    ind,
+                    prepro,
+                    seed))
             p.start()
             self.processes.append(p)
 

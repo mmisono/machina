@@ -147,8 +147,16 @@ while args.max_epis > total_epi:
         on_traj = ef.compute_h_masks(on_traj)
         on_traj.register_epis()
 
-        result_dict1 = ppo_clip.train(traj=on_traj, pol=pol, vf=vf, clip_param=args.clip_param,
-                                      optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size, max_grad_norm=args.max_grad_norm)
+        result_dict1 = ppo_clip.train(
+            traj=on_traj,
+            pol=pol,
+            vf=vf,
+            clip_param=args.clip_param,
+            optim_pol=optim_pol,
+            optim_vf=optim_vf,
+            epoch=args.epoch_per_iter,
+            batch_size=args.batch_size,
+            max_grad_norm=args.max_grad_norm)
 
         total_epi += on_traj.num_epi
         step = on_traj.num_step

@@ -156,7 +156,7 @@ class Traj(object):
                 remain_index -= 1
             for key in traj.data_map:
                 self.data_map[key] = traj.data_map[key][:epis_index[remain_index]]
-            self._epis_index = traj._epis_index[:remain_index+1]
+            self._epis_index = traj._epis_index[:remain_index + 1]
 
     def _shuffled_indices(self, indices):
         return indices[torch.randperm(len(indices))]
@@ -271,8 +271,15 @@ class Traj(object):
         else:
             return data_map
 
-    def prioritized_random_batch_once(self, batch_size, return_indices=False, mode='proportional', alpha=0.6, init_beta=0.4, beta_step=0.00025/4):
-        if hasattr(self, 'pri_beta') == False:
+    def prioritized_random_batch_once(
+            self,
+            batch_size,
+            return_indices=False,
+            mode='proportional',
+            alpha=0.6,
+            init_beta=0.4,
+            beta_step=0.00025 / 4):
+        if not hasattr(self, 'pri_beta'):
             self.pri_beta = init_beta
         elif self.pri_beta >= 1.0:
             self.pri_beta = 1.0
@@ -283,10 +290,10 @@ class Traj(object):
 
         if mode == 'rank_based':
             index = np.argsort(-pris)
-            pris = (index.astype(np.float32)+1) ** -1
+            pris = (index.astype(np.float32) + 1) ** -1
             pris = pris ** alpha
 
-        is_weights = (len(pris) * (pris/pris.sum())) ** -self.pri_beta
+        is_weights = (len(pris) * (pris / pris.sum())) ** -self.pri_beta
         is_weights /= np.max(is_weights)
         pris *= is_weights
         pris = torch.tensor(pris)
@@ -305,8 +312,14 @@ class Traj(object):
         else:
             return data_map
 
-    def prioritized_random_batch_rnn_once(self, batch_size, seq_length, return_indices=False, init_beta=0.4, beta_step=0.00025/4):
-        if hasattr(self, 'pri_beta') == False:
+    def prioritized_random_batch_rnn_once(
+            self,
+            batch_size,
+            seq_length,
+            return_indices=False,
+            init_beta=0.4,
+            beta_step=0.00025 / 4):
+        if not hasattr(self, 'pri_beta'):
             self.pri_beta = init_beta
         elif self.pri_beta >= 1.0:
             self.pri_beta = 1.0
@@ -324,7 +337,7 @@ class Traj(object):
         for start in start_indices:
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][start: start+seq_length]
+                data_map[key] = self.data_map[key][start: start + seq_length]
             seqs.append(data_map)
 
         batch = dict()
@@ -376,7 +389,7 @@ class Traj(object):
         ----------
         batch_size : int
         seq_length : int
-            Length of sequence of batch. 
+            Length of sequence of batch.
             If seq_length None, max episode length is selected.
         epoch : int
 
@@ -386,32 +399,32 @@ class Traj(object):
         """
 
         if seq_length is None:
-            seq_length = max([self._epis_index[i+1] - self._epis_index[i]
-                              for i in range(len(self._epis_index)-1)])
+            seq_length = max([self._epis_index[i + 1] - self._epis_index[i]
+                              for i in range(len(self._epis_index) - 1)])
 
         for _ in range(epoch):
             seqs = []
             lengths = []
             indices = np.random.randint(
-                0, len(self._epis_index)-1, (batch_size,))
+                0, len(self._epis_index) - 1, (batch_size,))
 
             if self.ddp:
                 indices = indices[self.rank:len(indices):self.world_size]
 
             for idx in indices:
                 length = min(
-                    self._epis_index[idx+1] - self._epis_index[idx], seq_length)
+                    self._epis_index[idx + 1] - self._epis_index[idx], seq_length)
                 start = np.random.randint(
-                    self._epis_index[idx], self._epis_index[idx+1] - length + 1)
+                    self._epis_index[idx], self._epis_index[idx + 1] - length + 1)
                 data_map = dict()
                 for key in self.data_map:
                     if self._epis_index[-1] - self._epis_index[idx] < seq_length:
-                        pad = torch.zeros_like(self.data_map[key][:seq_length-length],
+                        pad = torch.zeros_like(self.data_map[key][:seq_length - length],
                                                dtype=torch.float, device=get_device())
                         data_map[key] = torch.cat(
-                            [self.data_map[key][start: start+length], pad])
+                            [self.data_map[key][start: start + length], pad])
                     else:
-                        data_map[key] = self.data_map[key][start: start+seq_length]
+                        data_map[key] = self.data_map[key][start: start + seq_length]
                 lengths.append(length)
                 seqs.append(data_map)
 
@@ -448,7 +461,7 @@ class Traj(object):
         ----------
         batch_size : int
         seq_length : int
-            Length of sequence of batch. 
+            Length of sequence of batch.
             If seq_length None, max episode length is selected.
         epoch : int
         return_indices : bool
@@ -507,7 +520,7 @@ class Traj(object):
         for i in range(len(self._epis_index) - 1):
             data_map = dict()
             for key in self.data_map:
-                data_map[key] = self.data_map[key][self._epis_index[i]:self._epis_index[i+1]]
+                data_map[key] = self.data_map[key][self._epis_index[i]:self._epis_index[i + 1]]
             epis.append(data_map)
         if shuffle:
             indices = np.random.permutation(range(len(epis)))
@@ -551,7 +564,7 @@ class Traj(object):
             idx = 0
             while idx <= num_batch - batch_size:
                 cur_batch_size = min(batch_size, num_batch - idx)
-                batch = all_batch[idx:idx+cur_batch_size]
+                batch = all_batch[idx:idx + cur_batch_size]
                 idx += cur_batch_size
 
                 lengths = [list(b.values())[0].size(0) for b in batch]
@@ -559,9 +572,9 @@ class Traj(object):
                 out_masks = torch.ones(
                     (max_length, cur_batch_size), dtype=torch.float, device=get_device())
                 time_slice = list(functools.reduce(
-                    lambda x, y: x+y, [list(range(l, max_length)) for l in lengths]))
+                    lambda x, y: x + y, [list(range(l, max_length)) for l in lengths]))
                 batch_idx = list(functools.reduce(
-                    lambda x, y: x+y, [(max_length - l) * [i] for i, l in enumerate(lengths)]))
+                    lambda x, y: x + y, [(max_length - l) * [i] for i, l in enumerate(lengths)]))
                 out_masks[time_slice, batch_idx] = 0
 
                 _batch = dict()

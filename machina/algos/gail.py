@@ -52,18 +52,24 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
                 pol, batch, max_kl=max_kl, num_cg=num_cg, damping=damping, ent_beta=pol_ent_beta)
             pol_losses.append(pol_loss)
 
-        iterator = agent_traj.iterate(batch_size, epoch) if not pol.rnn else agent_traj.iterate_rnn(batch_size=batch_size,
-                                                                                                    num_epi_per_seq=num_epi_per_seq,
-                                                                                                    epoch=epoch)
+        iterator = agent_traj.iterate(
+            batch_size,
+            epoch) if not pol.rnn else agent_traj.iterate_rnn(
+            batch_size=batch_size,
+            num_epi_per_seq=num_epi_per_seq,
+            epoch=epoch)
         for batch in iterator:
             vf_loss = trpo.update_vf(vf, optim_vf, batch)
             vf_losses.append(vf_loss)
         new_kl_beta = 0
         kl_mean = 0
     elif rl_type == 'ppo_clip':
-        iterator = agent_traj.iterate(batch_size, epoch) if not pol.rnn else agent_traj.iterate_rnn(batch_size=batch_size,
-                                                                                                    num_epi_per_seq=num_epi_per_seq,
-                                                                                                    epoch=epoch)
+        iterator = agent_traj.iterate(
+            batch_size,
+            epoch) if not pol.rnn else agent_traj.iterate_rnn(
+            batch_size=batch_size,
+            num_epi_per_seq=num_epi_per_seq,
+            epoch=epoch)
         for batch in iterator:
             pol_loss = ppo_clip.update_pol(
                 pol, optim_pol, batch, clip_param, pol_ent_beta, max_grad_norm)
@@ -75,9 +81,12 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
         new_kl_beta = 0
         kl_mean = 0
     elif rl_type == 'ppo_kl':
-        iterator = agent_traj.iterate(batch_size, epoch) if not pol.rnn else agent_traj.iterate_rnn(batch_size=batch_size,
-                                                                                                    num_epi_per_seq=num_epi_per_seq,
-                                                                                                    epoch=epoch)
+        iterator = agent_traj.iterate(
+            batch_size,
+            epoch) if not pol.rnn else agent_traj.iterate_rnn(
+            batch_size=batch_size,
+            num_epi_per_seq=num_epi_per_seq,
+            epoch=epoch)
         for batch in iterator:
             pol_loss = ppo_kl.update_pol(
                 pol, optim_pol, batch, kl_beta, max_grad_norm, pol_ent_beta)
@@ -121,4 +130,9 @@ def train(agent_traj, expert_traj, pol, vf, discrim,
     if log_enable:
         logger.log("Optimization finished!")
 
-    return dict(PolLoss=pol_losses, VfLoss=vf_losses, DiscrimLoss=discrim_losses, new_kl_beta=new_kl_beta, kl_mean=kl_mean)
+    return dict(
+        PolLoss=pol_losses,
+        VfLoss=vf_losses,
+        DiscrimLoss=discrim_losses,
+        new_kl_beta=new_kl_beta,
+        kl_mean=kl_mean)

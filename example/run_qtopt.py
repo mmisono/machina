@@ -69,8 +69,10 @@ parser.add_argument('--num_sampling', type=int, default=60,
                     help='Number of samples sampled from Gaussian in CEM.')
 parser.add_argument('--num_best_sampling', type=int, default=6,
                     help='Number of best samples used for fitting Gaussian in CEM.')
-parser.add_argument('--multivari', action='store_true',
-                    help='If true, Gaussian with diagonal covarince instead of Multivariate Gaussian matrix is used in CEM.')
+parser.add_argument(
+    '--multivari',
+    action='store_true',
+    help='If true, Gaussian with diagonal covarince instead of Multivariate Gaussian matrix is used in CEM.')
 parser.add_argument('--eps', type=float, default=0.2,
                     help='Probability of random action in epsilon-greedy policy.')
 parser.add_argument('--loss_type', type=str,
@@ -178,17 +180,17 @@ while args.max_epis > total_epi:
         torch.save(pol.state_dict(), os.path.join(
             args.log, 'models', 'pol_max.pkl'))
         torch.save(qf.state_dict(), os.path.join(
-            args.log, 'models',  'qf_max.pkl'))
+            args.log, 'models', 'qf_max.pkl'))
         torch.save(targ_qf1.state_dict(), os.path.join(
-            args.log, 'models',  'targ_qf1_max.pkl'))
+            args.log, 'models', 'targ_qf1_max.pkl'))
         torch.save(targ_qf2.state_dict(), os.path.join(
-            args.log, 'models',  'targ_qf2_max.pkl'))
+            args.log, 'models', 'targ_qf2_max.pkl'))
         torch.save(optim_qf.state_dict(), os.path.join(
-            args.log, 'models',  'optim_qf_max.pkl'))
+            args.log, 'models', 'optim_qf_max.pkl'))
         max_rew = mean_rew
 
     torch.save(pol.state_dict(), os.path.join(
-        args.log, 'models',  'pol_last.pkl'))
+        args.log, 'models', 'pol_last.pkl'))
     torch.save(qf.state_dict(), os.path.join(
         args.log, 'models', 'qf_last.pkl'))
     torch.save(targ_qf1.state_dict(), os.path.join(
@@ -196,6 +198,6 @@ while args.max_epis > total_epi:
     torch.save(targ_qf2.state_dict(), os.path.join(
         args.log, 'models', 'targ_qf2_last.pkl'))
     torch.save(optim_qf.state_dict(), os.path.join(
-        args.log, 'models',  'optim_qf_last.pkl'))
+        args.log, 'models', 'optim_qf_last.pkl'))
     del on_traj
 del sampler

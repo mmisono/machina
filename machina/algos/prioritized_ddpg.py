@@ -26,7 +26,7 @@ def train(traj,
     for batch, indices in traj.prioritized_random_batch(batch_size, epoch, return_indices=True):
         qf_bellman_loss = lf.bellman(
             qf, targ_qf, targ_pol, batch, gamma, reduction='none')
-        td_loss = torch.sqrt(qf_bellman_loss*2)
+        td_loss = torch.sqrt(qf_bellman_loss * 2)
         qf_bellman_loss = torch.mean(qf_bellman_loss)
         optim_qf.zero_grad()
         qf_bellman_loss.backward()

@@ -45,7 +45,7 @@ class PolNet(nn.Module):
             self.mean_layer = nn.Linear(h2, action_space.shape[0])
             if not self.deterministic:
                 self.log_std_param = nn.Parameter(
-                    torch.randn(action_space.shape[0])*1e-10 - 1)
+                    torch.randn(action_space.shape[0]) * 1e-10 - 1)
             self.mean_layer.apply(mini_weight_init)
         else:
             if self.multi:
@@ -125,7 +125,7 @@ class PolNetLSTM(nn.Module):
         if not self.discrete:
             self.mean_layer = nn.Linear(self.cell_size, action_space.shape[0])
             self.log_std_param = nn.Parameter(
-                torch.randn(action_space.shape[0])*1e-10 - 1)
+                torch.randn(action_space.shape[0]) * 1e-10 - 1)
 
             self.mean_layer.apply(mini_weight_init)
         else:
@@ -163,7 +163,8 @@ class PolNetLSTM(nn.Module):
             return means, log_std, hs
         else:
             if self.multi:
-                return torch.cat([torch.softmax(ol(hiddens), dim=-1).unsqueeze(-2) for ol in self.output_layers], dim=-2), hs
+                return torch.cat([torch.softmax(ol(hiddens), dim=-1).unsqueeze(-2)
+                                  for ol in self.output_layers], dim=-2), hs
             else:
                 return torch.softmax(self.output_layer(hiddens), dim=-1), hs
 

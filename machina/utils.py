@@ -36,7 +36,7 @@ def get_redis():
 def _int(v):
     try:
         new_v = int(v)
-    except:
+    except BaseException:
         new_v = -1
     return new_v
 

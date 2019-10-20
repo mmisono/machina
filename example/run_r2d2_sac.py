@@ -151,9 +151,9 @@ while args.max_epis > total_epi:
         on_traj = ef.compute_h_masks(on_traj)
         for i in range(len(qfs)):
             on_traj = ef.compute_hs(
-                on_traj, qfs[i], hs_name='q_hs'+str(i), input_acs=True)
+                on_traj, qfs[i], hs_name='q_hs' + str(i), input_acs=True)
             on_traj = ef.compute_hs(
-                on_traj, targ_qfs[i], hs_name='targ_q_hs'+str(i), input_acs=True)
+                on_traj, targ_qfs[i], hs_name='targ_q_hs' + str(i), input_acs=True)
         on_traj.register_epis()
 
         off_traj.add_traj(on_traj)
@@ -166,7 +166,7 @@ while args.max_epis > total_epi:
             off_traj,
             pol, qfs, targ_qfs, log_alpha,
             optim_pol, optim_qfs, optim_alpha,
-            step//50, args.rnn_batch_size, args.seq_length, args.burn_in_length,
+            step // 50, args.rnn_batch_size, args.seq_length, args.burn_in_length,
             args.tau, args.gamma, args.sampling, not args.no_reparam
         )
 

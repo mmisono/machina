@@ -29,6 +29,7 @@
 # ==============================================================================
 # This code is taken from rllab which is MIT-licensed
 
+# mypy: ignore-errors
 
 import collections
 from collections import namedtuple
@@ -147,22 +148,22 @@ def _pipe_line_with_colons(colwidths, colaligns):
 
 
 def _mediawiki_row_with_attrs(separator, cell_values, colwidths, colaligns):
-    alignment = {"left":    '',
-                 "right":   'align="right"| ',
-                 "center":  'align="center"| ',
+    alignment = {"left": '',
+                 "right": 'align="right"| ',
+                 "center": 'align="center"| ',
                  "decimal": 'align="right"| '}
     # hard-coded padding _around_ align attribute and value together
     # rather than padding parameter which affects only the value
     values_with_attrs = [' ' + alignment.get(a, '') + c + ' '
                          for c, a in zip(cell_values, colaligns)]
-    colsep = separator*2
+    colsep = separator * 2
     return (separator + colsep.join(values_with_attrs)).rstrip()
 
 
 def _latex_line_begin_tabular(colwidths, colaligns):
     alignment = {"left": "l", "right": "r", "center": "c", "decimal": "r"}
     tabular_columns_fmt = "".join([alignment.get(a, "l") for a in colaligns])
-    return "\\begin{tabular}{" + tabular_columns_fmt + "}\n\hline"
+    return "\\begin{tabular}{" + tabular_columns_fmt + "}\n\\hline"
 
 
 _table_formats = {"simple":
@@ -243,8 +244,8 @@ _table_formats = {"simple":
 tabulate_formats = list(sorted(_table_formats.keys()))
 
 
-_invisible_codes = re.compile("\x1b\[\d*m")  # ANSI color codes
-_invisible_codes_bytes = re.compile(b"\x1b\[\d*m")  # ANSI color codes
+_invisible_codes = re.compile(r"\x1b\[\d*m")  # ANSI color codes
+_invisible_codes_bytes = re.compile(rb"\x1b\[\d*m")  # ANSI color codes
 
 
 def simple_separated_format(separator):
@@ -288,7 +289,7 @@ def _isint(string):
     >>> _isint("123.45")
     False
     """
-    return type(string) is int or \
+    return isinstance(string, int) or \
         (isinstance(string, _binary_type) or isinstance(string, _text_type)) and \
         _isconvertible(int, string)
 
@@ -554,7 +555,7 @@ def _normalize_tabular_data(tabular_data, headers):
             keys = list(tabular_data.keys())
             vals = tabular_data.values  # values matrix doesn't need to be transposed
             names = tabular_data.index
-            rows = [[v]+list(row) for v, row in zip(names, vals)]
+            rows = [[v] + list(row) for v, row in zip(names, vals)]
         else:
             raise ValueError(
                 "tabular data doesn't appear to be a dict or a DataFrame")
@@ -591,7 +592,7 @@ def _normalize_tabular_data(tabular_data, headers):
         nhs = len(headers)
         ncols = len(rows[0])
         if nhs < ncols:
-            headers = [""]*(ncols - nhs) + headers
+            headers = [""] * (ncols - nhs) + headers
 
     return rows, headers
 
@@ -815,7 +816,7 @@ def tabulate(tabular_data, headers=[], tablefmt="simple",
 
     # align columns
     aligns = [numalign if ct in [int, float] else stralign for ct in coltypes]
-    minwidths = [width_fn(h)+2 for h in headers] if headers else [0]*len(cols)
+    minwidths = [width_fn(h) + 2 for h in headers] if headers else [0] * len(cols)
     cols = [_align_column(c, a, minw, has_invisible)
             for c, a, minw in zip(cols, aligns, minwidths)]
 
@@ -859,14 +860,14 @@ def _build_line(colwidths, colaligns, linefmt):
     if hasattr(linefmt, "__call__"):
         return linefmt(colwidths, colaligns)
     else:
-        begin, fill, sep,  end = linefmt
-        cells = [fill*w for w in colwidths]
+        begin, fill, sep, end = linefmt
+        cells = [fill * w for w in colwidths]
         return _build_simple_row(cells, (begin, sep, end))
 
 
 def _pad_row(cells, padding):
     if cells:
-        pad = " "*padding
+        pad = " " * padding
         padded_cells = [pad + cell + pad for cell in cells]
         return padded_cells
     else:
@@ -880,7 +881,7 @@ def _format_table(fmt, headers, rows, colwidths, colaligns):
     pad = fmt.padding
     headerrow = fmt.headerrow
 
-    padded_widths = [(w + 2*pad) for w in colwidths]
+    padded_widths = [(w + 2 * pad) for w in colwidths]
     padded_headers = _pad_row(headers, pad)
     padded_rows = [_pad_row(row, pad) for row in rows]
 
@@ -1154,7 +1155,7 @@ def tweakfun(fun, alt=None):
     args = collect_args()
     if cmd_prefix in args:
         fun = pydoc.locate(args[cmd_prefix])
-    if type(fun) == type:
+    if isinstance(fun, type):
         argspec = inspect.getargspec(fun.__init__)
     else:
         argspec = inspect.getargspec(fun)
@@ -1163,7 +1164,7 @@ def tweakfun(fun, alt=None):
         list(zip(argspec.args[-len(argspec.defaults or []):], argspec.defaults or [])))
     replaced_kwargs = {}
     cmd_prefix += '-'
-    if type(fun) == type:
+    if isinstance(fun, type):
         meta = getattr(fun.__init__, '__tweak_type_hint_meta__', {})
     else:
         meta = getattr(fun, '__tweak_type_hint_meta__', {})
@@ -1552,7 +1553,7 @@ def stub_to_json(stub_sth):
         return {stub_to_json(k): stub_to_json(v) for k, v in stub_sth.items()}
     elif isinstance(stub_sth, (list, tuple)):
         return list(map(stub_to_json, stub_sth))
-    elif type(stub_sth) == type(lambda: None):
+    elif isinstance(stub_sth, type(lambda: None)):
         if stub_sth.__module__ is not None:
             return stub_sth.__module__ + "." + stub_sth.__name__
         return stub_sth.__name__

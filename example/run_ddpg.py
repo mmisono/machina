@@ -158,20 +158,20 @@ while args.max_epis > total_epi:
         torch.save(pol.state_dict(), os.path.join(
             args.log, 'models', 'pol_max.pkl'))
         torch.save(qf.state_dict(), os.path.join(
-            args.log, 'models',  'qf_max.pkl'))
+            args.log, 'models', 'qf_max.pkl'))
         torch.save(optim_pol.state_dict(), os.path.join(
-            args.log, 'models',  'optim_pol_max.pkl'))
+            args.log, 'models', 'optim_pol_max.pkl'))
         torch.save(optim_qf.state_dict(), os.path.join(
-            args.log, 'models',  'optim_qf_max.pkl'))
+            args.log, 'models', 'optim_qf_max.pkl'))
         max_rew = mean_rew
 
     torch.save(pol.state_dict(), os.path.join(
-        args.log, 'models',  'pol_last.pkl'))
+        args.log, 'models', 'pol_last.pkl'))
     torch.save(qf.state_dict(), os.path.join(
         args.log, 'models', 'qf_last.pkl'))
     torch.save(optim_pol.state_dict(), os.path.join(
-        args.log, 'models',  'optim_pol_last.pkl'))
+        args.log, 'models', 'optim_pol_last.pkl'))
     torch.save(optim_qf.state_dict(), os.path.join(
-        args.log, 'models',  'optim_qf_last.pkl'))
+        args.log, 'models', 'optim_qf_last.pkl'))
     del on_traj
 del sampler

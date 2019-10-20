@@ -6,7 +6,6 @@ https://arxiv.org/abs/1802.06070
 
 import os
 import gym
-import torch
 import argparse
 import numpy as np
 import pybullet_envs
@@ -22,7 +21,7 @@ from machina.utils import measure
 from machina.algos import diayn_sac, diayn
 from machina.pols import GaussianPol
 from machina.samplers import EpiSampler
-from machina.utils import set_device, measure
+from machina.utils import set_device
 from machina.traj import epi_functional as ef
 from machina.vfuncs import DeterministicSAVfunc, DeterministicSVfunc
 from simple_net import PolNet, QNet, DiaynDiscrimNet
@@ -77,7 +76,7 @@ f_dim = 9  # dimension of feature space
 '''
 
 
-def discrim_f(x): return x[:, 0:2]+x[:, 2:4]
+def discrim_f(x): return x[:, 0:2] + x[:, 2:4]
 
 
 f_dim = 2
@@ -115,7 +114,7 @@ targ_qfs = [targ_qf1, targ_qf2]
 
 log_alpha = nn.Parameter(torch.ones((), device=device))
 
-high = np.array([np.finfo(np.float32).max]*f_dim)
+high = np.array([np.finfo(np.float32).max] * f_dim)
 f_space = gym.spaces.Box(-high, high, dtype=np.float32)
 discrim_net = DiaynDiscrimNet(
     f_space, skill_space, h_size=args.discrim_h_size, discrim_f=discrim_f).to(device)
@@ -138,7 +137,7 @@ sampler = EpiSampler(
 
 if not os.path.exists(args.log):
     os.makedirs(args.log)
-    os.makedirs(args.log+'/models')
+    os.makedirs(args.log + '/models')
 score_file = os.path.join(args.log, 'progress.csv')
 logger.add_tabular_output(score_file)
 logger.add_tensorboard_output(args.log)
@@ -174,7 +173,7 @@ while args.max_episodes > total_epi:
         step = on_traj.num_step
         total_step += step
         log_alpha = nn.Parameter(
-            np.log(0.1)*torch.ones((), device=device))  # fix alpha
+            np.log(0.1) * torch.ones((), device=device))  # fix alpha
 
         result_dict = diayn_sac.train(
             off_traj,
@@ -200,23 +199,23 @@ while args.max_episodes > total_epi:
     steps_as = str(int(
         int(total_step / args.steps_per_save_models + 1) * args.steps_per_save_models))
     if 'prev_as' in locals():
-        if not prev_as == steps_as:
+        if not prev_as == steps_as:  # noqa
             torch.save(pol.state_dict(), os.path.join(
-                args.log, 'models', 'pol_'+steps_as+'.pkl'))
+                args.log, 'models', 'pol_' + steps_as + '.pkl'))
             torch.save(qf1.state_dict(), os.path.join(
-                args.log, 'models', 'qf1_'+steps_as+'.pkl'))
+                args.log, 'models', 'qf1_' + steps_as + '.pkl'))
             torch.save(qf2.state_dict(), os.path.join(
-                args.log, 'models', 'qf2_'+steps_as+'.pkl'))
+                args.log, 'models', 'qf2_' + steps_as + '.pkl'))
             torch.save(discrim.state_dict(), os.path.join(
-                args.log, 'models', 'discrim_'+steps_as+'.pkl'))
+                args.log, 'models', 'discrim_' + steps_as + '.pkl'))
             torch.save(optim_pol.state_dict(), os.path.join(
-                args.log, 'models', 'optim_pol_'+steps_as+'.pkl'))
+                args.log, 'models', 'optim_pol_' + steps_as + '.pkl'))
             torch.save(optim_qf1.state_dict(), os.path.join(
-                args.log, 'models', 'optim_qf1_'+steps_as+'.pkl'))
+                args.log, 'models', 'optim_qf1_' + steps_as + '.pkl'))
             torch.save(optim_qf2.state_dict(), os.path.join(
-                args.log, 'models', 'optim_qf2_'+steps_as+'.pkl'))
+                args.log, 'models', 'optim_qf2_' + steps_as + '.pkl'))
             torch.save(optim_discrim.state_dict(), os.path.join(
-                args.log, 'models', 'optim_discrim_'+steps_as+'.pkl'))
+                args.log, 'models', 'optim_discrim_' + steps_as + '.pkl'))
     prev_as = str(int(
         int(total_step / args.steps_per_save_models + 1) * args.steps_per_save_models))
     del on_traj

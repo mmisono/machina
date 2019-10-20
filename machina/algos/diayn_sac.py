@@ -62,9 +62,9 @@ def train(traj,
 
     discrim : SVfunction
         Discriminator.
-    discrim_f :  function 
+    discrim_f :  function
         Feature extractor of discriminator.
-    f_dim :  
+    f_dim :
         The dimention of discrim_f output.
     num_skill : int
         The number of skills.

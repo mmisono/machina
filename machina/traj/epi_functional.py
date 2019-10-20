@@ -71,7 +71,18 @@ def set_all_pris(data, pri):
     return data
 
 
-def compute_pris(data, qf, targ_qf, pol, gamma, continuous=True, deterministic=True, rnn=False, sampling=1, alpha=0.6, epsilon=1e-6):
+def compute_pris(
+        data,
+        qf,
+        targ_qf,
+        pol,
+        gamma,
+        continuous=True,
+        deterministic=True,
+        rnn=False,
+        sampling=1,
+        alpha=0.6,
+        epsilon=1e-6):
     """
     Compute prioritization.
 
@@ -114,7 +125,7 @@ def compute_pris(data, qf, targ_qf, pol, gamma, continuous=True, deterministic=T
             with torch.no_grad():
                 bellman_loss = lf.bellman(
                     qf, targ_qf, pol, data_map, gamma, continuous, deterministic, sampling, reduction='none')
-                td_loss = torch.sqrt(bellman_loss*2)
+                td_loss = torch.sqrt(bellman_loss * 2)
                 pris = (torch.abs(td_loss) + epsilon) ** alpha
                 epi['pris'] = pris.cpu().numpy()
         return data
@@ -147,8 +158,8 @@ def compute_seq_pris(data, seq_length, eta=0.9):
     for epi in epis:
         n_seq = len(epi['pris']) - seq_length + 1
         abs_pris = np.abs(epi['pris'])
-        seq_pris = np.array([eta * np.max(abs_pris[i:i+seq_length]) + (1 - eta) *
-                             np.mean(abs_pris[i:i+seq_length]) for i in range(n_seq)], dtype='float32')
+        seq_pris = np.array([eta * np.max(abs_pris[i:i + seq_length]) + (1 - eta) *
+                             np.mean(abs_pris[i:i + seq_length]) for i in range(n_seq)], dtype='float32')
         pad = np.zeros((seq_length - 1,), dtype='float32')
         epi['seq_pris'] = np.concatenate([seq_pris, pad])
 
@@ -229,7 +240,7 @@ def compute_hs(data, func, hs_name='hs', input_acs=False):
     Parameters
     ----------
     data : Traj or epis(dict of ndarray)
-    func : 
+    func :
         Any function. for example pols, vf and qf.
 
     Returns
@@ -251,10 +262,10 @@ def compute_hs(data, func, hs_name='hs', input_acs=False):
             if input_acs:
                 acs = torch.tensor(
                     epi['acs'], dtype=torch.float, device=get_device()).unsqueeze(1)
-                hs_seq = [func(obs[i:i+1], acs[i:i+1])[-1]['hs']
+                hs_seq = [func(obs[i:i + 1], acs[i:i + 1])[-1]['hs']
                           for i in range(time_seq)]
             else:
-                hs_seq = [func(obs[i:i+1])[-1]['hs'] for i in range(time_seq)]
+                hs_seq = [func(obs[i:i + 1])[-1]['hs'] for i in range(time_seq)]
             if isinstance(hs_seq[0], tuple):
                 hs = np.array([[h.squeeze().detach().cpu().numpy()
                                 for h in hs] for hs in hs_seq], dtype='float32')
@@ -389,7 +400,14 @@ def train_test_split(epis, train_size):
     return train_epis, test_epis
 
 
-def normalize_obs_and_acs(data, mean_obs=None, std_obs=None, mean_acs=None, std_acs=None, return_statistic=True, eps=1e-6):
+def normalize_obs_and_acs(
+        data,
+        mean_obs=None,
+        std_obs=None,
+        mean_acs=None,
+        std_acs=None,
+        return_statistic=True,
+        eps=1e-6):
     with torch.no_grad():
         if isinstance(data, Traj):
             epis = data.current_epis

@@ -44,11 +44,12 @@ parser.add_argument('--num_parallel', type=int, default=4,
                     help='Number of processes to sample.')
 parser.add_argument('--cuda', type=int, default=-1, help='cuda device number.')
 
-####################  Steps  ##########################################################################################################################
+"""
+Trainig Step
 # 1. Launch redis server via `redis-server`.                                                                                                          #
 # 2. Run this script.                                                                                                                                 #
 # 3. Launch sampling nodes via `python -m machina.samplers.distributed_sampler --world_size size --rank rank --redis_host hostname --redis_port port` #
-#######################################################################################################################################################
+"""  # noqa
 
 parser.add_argument('--sampler_world_size', type=int,
                     help='number of sampling nodes.')
@@ -179,11 +180,28 @@ while args.max_epis > total_epi:
         traj = tf.sync(traj)
 
         if args.ppo_type == 'clip':
-            result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=args.clip_param,
-                                         optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, max_grad_norm=args.max_grad_norm)
+            result_dict = ppo_clip.train(
+                traj=traj,
+                pol=pol,
+                vf=vf,
+                clip_param=args.clip_param,
+                optim_pol=optim_pol,
+                optim_vf=optim_vf,
+                epoch=args.epoch_per_iter,
+                batch_size=args.batch_size if not args.rnn else args.rnn_batch_size,
+                max_grad_norm=args.max_grad_norm)
         else:
-            result_dict = ppo_kl.train(traj=traj, pol=pol, vf=vf, kl_beta=kl_beta, kl_targ=args.kl_targ,
-                                       optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, max_grad_norm=args.max_grad_norm)
+            result_dict = ppo_kl.train(
+                traj=traj,
+                pol=pol,
+                vf=vf,
+                kl_beta=kl_beta,
+                kl_targ=args.kl_targ,
+                optim_pol=optim_pol,
+                optim_vf=optim_vf,
+                epoch=args.epoch_per_iter,
+                batch_size=args.batch_size if not args.rnn else args.rnn_batch_size,
+                max_grad_norm=args.max_grad_norm)
             kl_beta = result_dict['new_kl_beta']
 
     total_epi += traj.num_epi

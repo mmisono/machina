@@ -87,8 +87,15 @@ parser.add_argument('--discrim_h1', type=int, default=100,
 parser.add_argument('--discrim_h2', type=int, default=100,
                     help='Hidden size of layer2 of discriminator.')
 
-parser.add_argument('--rl_type', type=str,
-                    choices=['trpo', 'ppo_clip', 'ppo_kl'], default='trpo', help='Choice for Reinforcement Learning algorithms.')
+parser.add_argument(
+    '--rl_type',
+    type=str,
+    choices=[
+        'trpo',
+        'ppo_clip',
+        'ppo_kl'],
+    default='trpo',
+    help='Choice for Reinforcement Learning algorithms.')
 
 parser.add_argument('--clip_param', type=float, default=0.2,
                     help='Value of clipping liklihood ratio.')

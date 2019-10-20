@@ -41,7 +41,7 @@ def rew_func(next_obs, acs, mean_obs=0., std_obs=1., mean_acs=0., std_acs=1.):
     acs = acs * std_acs + mean_acs
     # Pendulum
     rews = -(torch.acos(next_obs[:, 0].clamp(min=-1, max=1))**2 +
-             0.1*(next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
+             0.1 * (next_obs[:, 2].clamp(min=-8, max=8)**2) + 0.001 * acs.squeeze(-1)**2)
     rews = rews.squeeze(0)
 
     return rews
@@ -164,8 +164,8 @@ counter_agg_iters = 0
 max_rew = -1e+6
 while args.max_epis > total_epi:
     with measure('train model'):
-        result_dict = mpc.train_dm(
-            traj, dm, optim_dm, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size)
+        result_dict = mpc.train_dm(traj, dm, optim_dm, epoch=args.epoch_per_iter,
+                                   batch_size=args.batch_size if not args.rnn else args.rnn_batch_size)
     with measure('sample'):
         mpc_pol = MPCPol(observation_space, action_space, dm.net, rew_func,
                          args.n_samples, args.horizon_of_samples,

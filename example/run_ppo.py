@@ -151,11 +151,28 @@ while args.max_epis > total_epi:
         traj.register_epis()
 
         if args.ppo_type == 'clip':
-            result_dict = ppo_clip.train(traj=traj, pol=pol, vf=vf, clip_param=args.clip_param,
-                                         optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, max_grad_norm=args.max_grad_norm)
+            result_dict = ppo_clip.train(
+                traj=traj,
+                pol=pol,
+                vf=vf,
+                clip_param=args.clip_param,
+                optim_pol=optim_pol,
+                optim_vf=optim_vf,
+                epoch=args.epoch_per_iter,
+                batch_size=args.batch_size if not args.rnn else args.rnn_batch_size,
+                max_grad_norm=args.max_grad_norm)
         else:
-            result_dict = ppo_kl.train(traj=traj, pol=pol, vf=vf, kl_beta=kl_beta, kl_targ=args.kl_targ,
-                                       optim_pol=optim_pol, optim_vf=optim_vf, epoch=args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, max_grad_norm=args.max_grad_norm)
+            result_dict = ppo_kl.train(
+                traj=traj,
+                pol=pol,
+                vf=vf,
+                kl_beta=kl_beta,
+                kl_targ=args.kl_targ,
+                optim_pol=optim_pol,
+                optim_vf=optim_vf,
+                epoch=args.epoch_per_iter,
+                batch_size=args.batch_size if not args.rnn else args.rnn_batch_size,
+                max_grad_norm=args.max_grad_norm)
             kl_beta = result_dict['new_kl_beta']
 
     total_epi += traj.num_epi

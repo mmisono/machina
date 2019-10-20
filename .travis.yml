@@ -13,12 +13,12 @@ install:
     - pip install --upgrade pip setuptools wheel psutil pytest
     - pip install --default-timeout=2000 -q -e .
     - pip list
-    - pip install autopep8
+    - pip install autopep8 flake8
     - curl -sc /tmp/cookie "https://drive.google.com/uc?export=download&id=1hzRxBhnkQA3lWLzTFdVuJ0t5Cj1IvVIU" > /dev/null
     - CODE="$(awk '/_warning_/ {print $NF}' /tmp/cookie)"
     - curl -Lb /tmp/cookie "https://drive.google.com/uc?export=download&confirm=${CODE}&id=1hzRxBhnkQA3lWLzTFdVuJ0t5Cj1IvVIU" -o data/expert_epis/Pendulum-v0_2epis.pkl
 script:
-    - autopep8 -r . --diff | tee check_autopep8
-    - test ! -s check_autopep8
+    - autopep8 -r . --diff --exit-code
+    - flake8 .
     - pytest -x tests
 sudo: required

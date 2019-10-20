@@ -24,9 +24,9 @@ class BasePrePro(object):
         """
         Updating running mean and running variance.
         """
-        self.ob_rm = self.ob_rm * (1-self.alpha) + self.alpha * ob
-        self.ob_rv = self.ob_rv * (1-self.alpha) + \
-            self.alpha * np.square(ob-self.ob_rm)
+        self.ob_rm = self.ob_rm * (1 - self.alpha) + self.alpha * ob
+        self.ob_rv = self.ob_rv * (1 - self.alpha) + \
+            self.alpha * np.square(ob - self.ob_rm)
 
     def prepro(self, ob):
         """

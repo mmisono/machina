@@ -108,7 +108,7 @@ else:
         raise ValueError('Only Box, Discrete, and MultiDiscrete are supported')
 
 
-sampler = EpiSampler(env, pol, num_parallel=args.num_parallel,  seed=args.seed)
+sampler = EpiSampler(env, pol, num_parallel=args.num_parallel, seed=args.seed)
 
 with open(os.path.join(args.pol_dir, args.pol_fname), 'rb') as f:
     pol.load_state_dict(torch.load(

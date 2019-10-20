@@ -5,7 +5,6 @@ Test script for algorithms.
 import unittest
 import os
 
-import os
 import pickle
 import numpy as np
 import torch
@@ -17,7 +16,8 @@ import machina as mc
 from machina.pols import GaussianPol, CategoricalPol, MultiCategoricalPol
 from machina.pols import DeterministicActionNoisePol, ArgmaxQfPol, MPCPol, RandomPol
 from machina.noise import OUActionNoise
-from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt, on_pol_teacher_distill, behavior_clone, gail, airl, mpc, r2d2_sac, diayn, diayn_sac
+from machina.algos import ppo_clip, ppo_kl, trpo, ddpg, sac, svg, qtopt, on_pol_teacher_distill, behavior_clone
+from machina.algos import gail, airl, mpc, r2d2_sac, diayn, diayn_sac
 from machina.vfuncs import DeterministicSVfunc, DeterministicSAVfunc, CEMDeterministicSAVfunc
 from machina.models import DeterministicSModel
 from machina.envs import GymEnv, C2DEnv, SkillEnv
@@ -468,9 +468,14 @@ class TestQTOPT(unittest.TestCase):
             self.env.observation_space, self.env.action_space, qf_net)
         lagged_qf = DeterministicSAVfunc(
             self.env.observation_space, self.env.action_space, lagged_qf_net)
-        targ_qf1 = CEMDeterministicSAVfunc(self.env.observation_space, self.env.action_space, targ_qf1_net, num_sampling=60,
-                                           num_best_sampling=6, num_iter=2,
-                                           multivari=False)
+        targ_qf1 = CEMDeterministicSAVfunc(
+            self.env.observation_space,
+            self.env.action_space,
+            targ_qf1_net,
+            num_sampling=60,
+            num_best_sampling=6,
+            num_iter=2,
+            multivari=False)
         targ_qf2 = DeterministicSAVfunc(
             self.env.observation_space, self.env.action_space, targ_qf2_net)
 

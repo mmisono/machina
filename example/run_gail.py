@@ -203,12 +203,21 @@ while args.max_epis > total_epi:
         agent_traj.register_epis()
 
         if args.rl_type == 'trpo':
-            result_dict = gail.train(agent_traj, expert_traj, pol, vf, discrim, optim_vf, optim_discrim,
-                                     rl_type=args.rl_type,
-                                     epoch=args.epoch_per_iter,
-                                     batch_size=args.batch_size if not args.rnn else args.rnn_batch_size, discrim_batch_size=args.discrim_batch_size,
-                                     discrim_step=args.discrim_step,
-                                     pol_ent_beta=args.pol_ent_beta, discrim_ent_beta=args.discrim_ent_beta)
+            result_dict = gail.train(
+                agent_traj,
+                expert_traj,
+                pol,
+                vf,
+                discrim,
+                optim_vf,
+                optim_discrim,
+                rl_type=args.rl_type,
+                epoch=args.epoch_per_iter,
+                batch_size=args.batch_size if not args.rnn else args.rnn_batch_size,
+                discrim_batch_size=args.discrim_batch_size,
+                discrim_step=args.discrim_step,
+                pol_ent_beta=args.pol_ent_beta,
+                discrim_ent_beta=args.discrim_ent_beta)
         elif args.rl_type == 'ppo_clip':
             result_dict = gail.train(agent_traj, expert_traj, pol, vf, discrim, optim_vf, optim_discrim,
                                      rl_type=args.rl_type,

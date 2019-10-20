@@ -98,7 +98,7 @@ def train(traj,
         train_length = seq_length - burn_in_length
         for i in range(batch_size):
             start = start_indices[i] + burn_in_length
-            seq_indices = torch.arange(start, start+train_length-1)
+            seq_indices = torch.arange(start, start + train_length - 1)
             traj = tf.update_pris(
                 traj, td_losses[:, i], seq_indices, update_epi_pris=True, seq_length=seq_length)
 

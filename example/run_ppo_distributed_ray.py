@@ -284,12 +284,21 @@ if __name__ == "__main__":
                         help='apex option. sync batch norm statistics.')
 
     # Ray option
-    parser.add_argument('--ray_redis_address', type=str, default=None,
-                        help='Ray cluster\'s address that this programm connect to. If not specified, start ray locally.')
-    parser.add_argument('--num_gpus', type=int, default=None,
-                        help='Number of GPUs that ray manages. Only effective when launching ray locally. default: all GPUs available.')
-    parser.add_argument('--num_cpus', type=int, default=None,
-                        help='Number of CPUs that ray manages. Only effective when launching ray locally. default: all CPUs available.')
+    parser.add_argument(
+        '--ray_redis_address',
+        type=str,
+        default=None,
+        help='Ray cluster\'s address that this programm connect to. If not specified, start ray locally.')
+    parser.add_argument(
+        '--num_gpus',
+        type=int,
+        default=None,
+        help='Number of GPUs that ray manages. Only effective when launching ray locally. default: all GPUs available.')
+    parser.add_argument(
+        '--num_cpus',
+        type=int,
+        default=None,
+        help='Number of CPUs that ray manages. Only effective when launching ray locally. default: all CPUs available.')
     parser.add_argument('--num_trainer', type=int, default=1,
                         help='Number of trainers (number of GPUs to train).')
     args = parser.parse_args()

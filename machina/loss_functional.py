@@ -116,7 +116,16 @@ def pg_kl(pol, batch, kl_beta, ent_beta=0):
     return pol_loss
 
 
-def bellman(qf, targ_qf, targ_pol, batch, gamma, continuous=True, deterministic=True, sampling=1, reduction='elementwise_mean'):
+def bellman(
+        qf,
+        targ_qf,
+        targ_pol,
+        batch,
+        gamma,
+        continuous=True,
+        deterministic=True,
+        sampling=1,
+        reduction='elementwise_mean'):
     """
     Bellman loss.
     Mean Squared Error of left hand side and right hand side of Bellman Equation.
@@ -298,7 +307,18 @@ def sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, reparam=True, n
     return pol_loss, qf_losses, alpha_loss
 
 
-def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_length=40, reparam=True, normalize=False, eps=1e-6):
+def r2d2_sac(
+        pol,
+        qfs,
+        targ_qfs,
+        log_alpha,
+        batch,
+        gamma,
+        sampling=1,
+        burn_in_length=40,
+        reparam=True,
+        normalize=False,
+        eps=1e-6):
     """
     Loss for soft actor critic.
 
@@ -337,7 +357,7 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     bi_next_obs = batch['next_obs'][:burn_in_length]
     bi_acs = batch['acs'][:burn_in_length]
     bi_h_masks = batch['h_masks'][:burn_in_length]
-    bi_next_h_masks = batch['h_masks'][1:burn_in_length+1]
+    bi_next_h_masks = batch['h_masks'][1:burn_in_length + 1]
 
     # trajectories for train
     obs = batch['obs'][burn_in_length: -1]
@@ -346,14 +366,14 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     next_obs = batch['next_obs'][burn_in_length: -1]
     dones = batch['dones'][burn_in_length: -1]
     h_masks = batch['h_masks'][burn_in_length: -1]
-    next_h_masks = batch['h_masks'][burn_in_length+1:]
+    next_h_masks = batch['h_masks'][burn_in_length + 1:]
 
     # hidden states (time_seq, batch_size, *, cell_size)
     init_a_hs = (batch['hs'][0, :, 0], batch['hs'][0, :, 1])
-    init_qf_hs = [(batch['q_hs'+str(i)][0, :, 0], batch['q_hs'+str(i)][0, :, 1])
+    init_qf_hs = [(batch['q_hs' + str(i)][0, :, 0], batch['q_hs' + str(i)][0, :, 1])
                   for i in range(len(qfs))]
-    init_targ_qf_hs = [(batch['targ_q_hs'+str(i)][0, :, 0],
-                        batch['targ_q_hs'+str(i)][0, :, 1]) for i in range(len(targ_qfs))]
+    init_targ_qf_hs = [(batch['targ_q_hs' + str(i)][0, :, 0],
+                        batch['targ_q_hs' + str(i)][0, :, 1]) for i in range(len(targ_qfs))]
 
     alpha = torch.exp(log_alpha)
 
@@ -412,24 +432,30 @@ def r2d2_sac(pol, qfs, targ_qfs, log_alpha, batch, gamma, sampling=1, burn_in_le
     sampled_next_acs = sampled_next_acs.transpose(0, 1)
 
     # (sampling, time_seq, batch_size)
-    sampled_llh = torch.stack(
-        [torch.stack([pd.llh(sampled_acs[s][i].detach(), pd_params[i]) for i in range(train_length)]) for s in range(sampling)])
-    sampled_next_llh = torch.stack(
-        [torch.stack([pd.llh(sampled_next_acs[s][i], next_pd_params[i]) for i in range(train_length)]) for s in range(sampling)])
+    sampled_llh = torch.stack([torch.stack([pd.llh(sampled_acs[s][i].detach(), pd_params[i])
+                                            for i in range(train_length)]) for s in range(sampling)])
+    sampled_next_llh = torch.stack([torch.stack([pd.llh(sampled_next_acs[s][i], next_pd_params[i])
+                                                 for i in range(train_length)]) for s in range(sampling)])
 
     # forward of qfs and targ_qfs for burn-in
     with torch.no_grad():
         qf_hs = [[qf(bi_sampled_obs[i], bi_sampled_acs[i], hs=init_qf_hs[q],
                      h_masks=bi_h_masks)[-1]['hs'] for i in range(sampling)] for q, qf in enumerate(qfs)]
-        targ_qf_hs = [[targ_qf(bi_sampled_next_obs[i], bi_sampled_next_acs[i], hs=init_targ_qf_hs[q],
-                               h_masks=bi_next_h_masks)[-1]['hs'] for i in range(sampling)] for q, targ_qf in enumerate(targ_qfs)]
+        targ_qf_hs = [[targ_qf(bi_sampled_next_obs[i],
+                               bi_sampled_next_acs[i],
+                               hs=init_targ_qf_hs[q],
+                               h_masks=bi_next_h_masks)[-1]['hs'] for i in range(sampling)] for q,
+                      targ_qf in enumerate(targ_qfs)]
 
     # forward of qfs and targ_qfs for train
     # (len(qfs), sampling, time_seq, batch_size)
     sampled_qs = torch.stack([torch.stack([qf(sampled_obs[s], sampled_acs[s], hs=qf_hs[q][s], h_masks=h_masks)[
         0] for s in range(sampling)]) for q, qf in enumerate(qfs)])
-    sampled_next_targ_qs = torch.stack([torch.stack([targ_qf(sampled_next_obs[s], sampled_next_acs[s], hs=targ_qf_hs[q][s], h_masks=next_h_masks)[
-        0] for s in range(sampling)]) for q, targ_qf in enumerate(targ_qfs)])
+    sampled_next_targ_qs = torch.stack([torch.stack([targ_qf(sampled_next_obs[s],
+                                                             sampled_next_acs[s],
+                                                             hs=targ_qf_hs[q][s],
+                                                             h_masks=next_h_masks)[0] for s in range(sampling)]) for q,
+                                        targ_qf in enumerate(targ_qfs)])
 
     # (len(qfs), time_seq, batch_size)
     next_vs = torch.stack([torch.mean(sampled_next_targ_q - alpha * sampled_next_llh, dim=0)
@@ -643,8 +669,8 @@ def cross_ent(discrim, batch, expert_or_agent, ent_beta):
     len = obs.shape[0]
     logits, _ = discrim(obs, acs)
     discrim_loss = F.binary_cross_entropy_with_logits(
-        logits, torch.ones(len, device=get_device())*expert_or_agent)
-    ent = (1 - torch.sigmoid(logits))*logits - F.logsigmoid(logits)
+        logits, torch.ones(len, device=get_device()) * expert_or_agent)
+    ent = (1 - torch.sigmoid(logits)) * logits - F.logsigmoid(logits)
     discrim_loss -= ent_beta * torch.mean(ent)
     return discrim_loss
 
@@ -676,7 +702,7 @@ def density_ratio_cross_ent(pol, batch, expert_or_agent, gamma, rewf=None, shapi
     logits = energies - llhs
     len = obs.shape[0]
     discrim_loss = F.binary_cross_entropy_with_logits(
-        logits, torch.ones(len, device=get_device())*expert_or_agent)
+        logits, torch.ones(len, device=get_device()) * expert_or_agent)
     return discrim_loss
 
 

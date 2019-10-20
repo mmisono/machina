@@ -191,4 +191,5 @@ while args.max_epis > total_epi:
 
     del traj
     del traj_measure
-del sampler
+del teacher_sampler
+del student_sampler

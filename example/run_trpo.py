@@ -114,8 +114,8 @@ while args.max_epis > total_epi:
         traj = ef.compute_h_masks(traj)
         traj.register_epis()
 
-        result_dict = trpo.train(
-            traj, pol, vf, optim_vf, args.epoch_per_iter, batch_size=args.batch_size if not args.rnn else args.rnn_batch_size)
+        result_dict = trpo.train(traj, pol, vf, optim_vf, args.epoch_per_iter,
+                                 batch_size=args.batch_size if not args.rnn else args.rnn_batch_size)
 
     total_epi += traj.num_epi
     step = traj.num_step

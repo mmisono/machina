@@ -21,7 +21,16 @@ def update_dm(dm, optim_dm, batch, target='next_obs', td=True):
     return dm_loss.detach().cpu().numpy()
 
 
-def train_dm(traj, dyn_model, optim_dm, epoch=60, batch_size=512, target='next_obs', td=True, num_epi_per_seq=1, log_enable=True):
+def train_dm(
+        traj,
+        dyn_model,
+        optim_dm,
+        epoch=60,
+        batch_size=512,
+        target='next_obs',
+        td=True,
+        num_epi_per_seq=1,
+        log_enable=True):
     """
     Train function for dynamics model.
 
