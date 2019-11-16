@@ -33,6 +33,7 @@ This code is taken from rllab which is MIT-licensed.
 """
 
 import gym
+import gym.wrappers
 from machina import logger
 
 
